@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard - Sakra Hospital</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #f0f2f5;
+    margin: 0;
+    overflow-x: hidden;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 230px;
+    height: 100vh;
+    position: fixed;
+    top: 60px; /* below navbar */
+    left: -230px;
+    background: linear-gradient(180deg, #a98be6, #9db6e2);
+    color: #fff;
+    padding-top: 20px;
+    padding-bottom: 20px; /* added for spacing at bottom */
+    display: flex;
+    flex-direction: column;
+    transition: left 0.5s ease;
+    z-index: 1000;
+    box-shadow: 4px 0 12px rgba(0,0,0,0.2);
+    overflow-y: auto; /* make it scrollable */
+  }
+  .sidebar.show {
+    left: 0;
+  }
+  .sidebar a {
+    color: #f8f9fa;
+    text-decoration: none;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+    border-radius: 8px;
+    margin: 2px 10px;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  .sidebar a i {
+    font-size: 18px;
+    transition: transform 0.3s, color 0.3s;
+  }
+  .sidebar a:hover,
+  .sidebar a.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+  }
+  .sidebar a:hover i,
+  .sidebar a.active i {
+    color: #ffe600;
+    transform: scale(1.2);
+  }
+
+  /* Top Navbar */
+  .navbar-custom {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #a98be6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1001;
+  }
+  .navbar-custom img.logo {
+    height: 40px;
+  }
+
+  /* Content */
+  .content {
+    margin-left: 0;
+    padding: 90px 30px 30px 30px;
+    transition: margin-left 0.5s ease;
+  }
+  .content.with-sidebar {
+    margin-left: 230px;
+  }
+
+  .section-title {
+    color: #333;
+    margin-bottom: 25px;
+  }
+
+  /* Dashboard Cards */
+  .dashboard-cards {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .dashboard-cards.hide {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50px);
+  }
+  .dashboard-card {
+    flex: 1 1 250px;
+    max-width: 250px;
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+  }
+  .dashboard-card img {
+    width: 60px;
+    margin-bottom: 15px;
+  }
+  .dashboard-card h5 {
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: hsl(226, 86%, 14%);
+  }
+  .dashboard-card p {
+    color: #666;
+  }
+
+  /* Detailed Section */
+  .details-section {
+    display: none;
+    margin-top: 30px;
+    background: #fff;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(169, 128, 128, 0.1);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .details-section.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .details-section h4 {
+    margin-bottom: 15px;
+  }
+
+  /* Back Button */
+  .back-btn {
+    margin-bottom: 15px;
+    background: #b388e2;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .back-btn:hover {
+    background: #be96e5;
+  }
+
+  /* Profile Dropdown */
+  .profile-section {
+    position: relative;
+    cursor: pointer;
+  }
+  .profile-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background: #fff;
+    border-radius: 10px;
+    width: 150px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    z-index: 1001;
+  }
+  .profile-dropdown a {
+    display: block;
+    padding: 10px 15px;
+    color: #212529;
+    text-decoration: none;
+  }
+  .profile-dropdown a:hover {
+    background: #f8f9fa;
+  }
+</style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h5 class="text-center mb-4">Sakra Hospital</h5>
+    <a href="#" class="active" onclick="showDetails('pending')"><i class="bi bi-clock-history"></i> Pending Task</a>
+    <a href="#" onclick="showDetails('completed')"><i class="bi bi-check2-circle"></i> Completed Task</a>
+    <a href="#" onclick="showDetails('monthly')"><i class="bi bi-currency-rupee"></i> Monthly PRS Advance</a>
+    <a href="#" onclick="showDetails('local')"><i class="bi bi-truck"></i> Local Conveyance</a>
+    <a href="#" onclick="showDetails('capex')"><i class="bi bi-building"></i> Capex Advance PRS</a>
+    <a href="#" onclick="showDetails('expense')"><i class="bi bi-file-earmark-text"></i> Expense Claim</a>
+    <a href="#" onclick="showDetails('vendor')"><i class="bi bi-person-badge"></i> Regular Vendor Advance PRS</a>
+    <a href="#" onclick="showDetails('reimbursement')"><i class="bi bi-wallet2"></i> Employee Reimbursement</a>
+  </div>
+
+  <!-- Top Navbar -->
+  <div class="navbar-custom">
+    <img src="images/Sakra-logo.png" class="logo" alt="Hospital Logo">
+    <div class="profile-section">
+      <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" width="40" height="40" class="rounded-circle" onclick="toggleDropdown()">
+      <div class="profile-dropdown" id="profileDropdown">
+        <a href="#" onclick="logout()">Logout</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content" id="content">
+    <!-- Dashboard Cards -->
+    <div class="dashboard-cards" id="cardsContainer">
+      <div class="dashboard-card" onclick="openSection('pending')">
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Pending">
+        <h5>Pending Tasks</h5>
+        <p>5 tasks waiting</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('completed')">
+        <img src="https://cdn-icons-png.flaticon.com/512/190/190411.png" alt="Completed">
+        <h5>Completed Tasks</h5>
+        <p>10 tasks completed</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('monthly')">
+        <img src="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" alt="Monthly">
+        <h5>Monthly PRS Advance</h5>
+        <p>₹50,000 this month</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('local')">
+        <img src="https://cdn-icons-png.flaticon.com/512/2331/2331941.png" alt="Local">
+        <h5>Local Conveyance</h5>
+        <p>₹12,000 this month</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('capex')">
+        <img src="https://cdn-icons-png.flaticon.com/512/3077/3077243.png" alt="Capex">
+        <h5>Capex Advance PRS</h5>
+        <p>₹25,000 approved</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('expense')">
+        <img src="https://cdn-icons-png.flaticon.com/512/2921/2921222.png" alt="Expense">
+        <h5>Expense Claim</h5>
+        <p>₹8,500 pending</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('vendor')">
+        <img src="https://cdn-icons-png.flaticon.com/512/2920/2920507.png" alt="Vendor">
+        <h5>Regular Vendor Advance PRS</h5>
+        <p>₹30,000 this month</p>
+      </div>
+      <div class="dashboard-card" onclick="openSection('reimbursement')">
+        <img src="https://cdn-icons-png.flaticon.com/512/3039/3039435.png" alt="Reimbursement">
+        <h5>Employee Reimbursement</h5>
+        <p>₹5,000 pending</p>
+      </div>
+    </div>
+
+    <!-- Detailed Sections -->
+    <div class="details-section" id="pending-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Pending Tasks Details</h4>
+      <ul>
+        <li>Task 1: Check patient records</li>
+        <li>Task 2: Schedule appointments</li>
+        <li>Task 3: Prepare reports</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="completed-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Completed Tasks Details</h4>
+      <ul>
+        <li>Task 1: Updated patient files</li>
+        <li>Task 2: Completed monthly reports</li>
+        <li>Task 3: Inventory checked</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="monthly-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Monthly PRS Advance Details</h4>
+      <ul>
+        <li>Advance 1: ₹20,000</li>
+        <li>Advance 2: ₹15,000</li>
+        <li>Advance 3: ₹15,000</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="local-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Local Conveyance Details</h4>
+      <ul>
+        <li>Conveyance 1: ₹5,000</li>
+        <li>Conveyance 2: ₹7,000</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="capex-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Capex Advance PRS Details</h4>
+      <ul>
+        <li>Capex 1: ₹10,000</li>
+        <li>Capex 2: ₹15,000</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="expense-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Expense Claim Details</h4>
+      <ul>
+        <li>Claim 1: ₹3,500</li>
+        <li>Claim 2: ₹5,000</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="vendor-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Regular Vendor Advance PRS Details</h4>
+      <ul>
+        <li>Vendor 1: ₹15,000</li>
+        <li>Vendor 2: ₹15,000</li>
+      </ul>
+    </div>
+
+    <div class="details-section" id="reimbursement-details">
+      <button class="back-btn" onclick="backToDashboard()">← Back to Dashboard</button>
+      <h4>Employee Reimbursement Details</h4>
+      <ul>
+        <li>Reimbursement 1: ₹2,000</li>
+        <li>Reimbursement 2: ₹1,500</li>
+        <li>Reimbursement 3: ₹1,500</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <script>
+    // Redirect if not logged in
+    if (!sessionStorage.getItem('loggedIn')) {
+      window.location.href = 'index.html';
+    }
+
+    function openSection(section) {
+      const cards = document.getElementById('cardsContainer');
+      cards.classList.add('hide');
+      setTimeout(() => {
+        cards.style.display = 'none';
+        document.getElementById('sidebar').classList.add('show');
+        document.getElementById('content').classList.add('with-sidebar');
+        showDetails(section);
+      }, 500);
+    }
+
+    function showDetails(section) {
+      const sections = ['pending','completed','monthly','local','capex','expense','vendor','reimbursement'];
+      sections.forEach(id => {
+        const el = document.getElementById(id + '-details');
+        if(id===section) el.classList.add('show');
+        else el.classList.remove('show');
+      });
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      const activeLink = document.querySelector(`.sidebar a[onclick="showDetails('${section}')"]`);
+      if(activeLink) activeLink.classList.add('active');
+    }
+
+    function backToDashboard() {
+      const sections = ['pending','completed','monthly','local','capex','expense','vendor','reimbursement'];
+      sections.forEach(id => document.getElementById(id + '-details').classList.remove('show'));
+      document.getElementById('sidebar').classList.remove('show');
+      document.getElementById('content').classList.remove('with-sidebar');
+      const cards = document.getElementById('cardsContainer');
+      cards.style.display = 'flex';
+      setTimeout(() => { cards.classList.remove('hide'); }, 50);
+    }
+
+    function toggleDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      dropdown.style.display = dropdown.style.display==='block'?'none':'block';
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+
+    document.addEventListener('click', function(e){
+      const profile = document.querySelector('.profile-section');
+      const dropdown = document.getElementById('profileDropdown');
+      if(!profile.contains(e.target)) dropdown.style.display='none';
+    });
+  </script>
+</body>
+</html>
