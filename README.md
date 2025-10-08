@@ -97,11 +97,6 @@ Dependencies are declared in `package.json`. Key ones might include:
 
 ---
 
-## 📄 License
-
-Specify a license for the project, e.g.:
-
----
 
 ## ✉️ Contact / Author
 
